@@ -1,6 +1,9 @@
 name: moneytracker
-description: "A new Flutter project."
+
+description: "A minimalistic money tracking Flutter app with a black-and-white theme."
+
 publish_to: 'none'
+
 version: 0.1.0
 
 environment:
@@ -10,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ^0.18.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

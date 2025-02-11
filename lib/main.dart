@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   runApp(MoneyTrackerApp());
@@ -32,9 +34,32 @@ class MoneyTrackerHome extends StatefulWidget {
 }
 
 class _MoneyTrackerHomeState extends State<MoneyTrackerHome> {
-  final List<Map<String, dynamic>> transactions = [];
+  List<Map<String, dynamic>> transactions = [];
   double balance = 0.0;
   final TextEditingController amountController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    loadTransactions();
+  }
+
+  Future<void> loadTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedData = prefs.getString('transactions');
+    if (savedData != null) {
+      final List<dynamic> decodedData = jsonDecode(savedData);
+      setState(() {
+        transactions = decodedData.cast<Map<String, dynamic>>();
+        balance = transactions.fold(0, (sum, item) => sum + item['amount']);
+      });
+    }
+  }
+
+  Future<void> saveTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('transactions', jsonEncode(transactions));
+  }
 
   void addTransaction(bool isDeposit) {
     final double? amount = double.tryParse(amountController.text);
@@ -43,10 +68,12 @@ class _MoneyTrackerHomeState extends State<MoneyTrackerHome> {
     setState(() {
       transactions.insert(0, {
         'amount': isDeposit ? amount : -amount,
-        'date': DateTime.now(),
+        'date': DateTime.now().toIso8601String(),
       });
       balance += isDeposit ? amount : -amount;
     });
+
+    saveTransactions();
     amountController.clear();
   }
 
@@ -112,7 +139,8 @@ class _MoneyTrackerHomeState extends State<MoneyTrackerHome> {
                       ),
                     ),
                     subtitle: Text(
-                      DateFormat.yMMMd().format(transaction['date']),
+                      DateFormat.yMMMd()
+                          .format(DateTime.parse(transaction['date'])),
                       style: TextStyle(color: Colors.grey),
                     ),
                   );
