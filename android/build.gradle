@@ -2,15 +2,15 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal() // Ensure plugin support
     }
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(":app")
+    evaluationDependsOn(":app") // Correct placement inside subprojects
 }
 
 tasks.register("clean", Delete) {
